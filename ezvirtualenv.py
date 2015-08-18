@@ -5,12 +5,12 @@ import os.path
 import subprocess
 import sys
 
-def ensure_in_venv():
+def run_as_virtual():
     script_path = os.path.abspath(sys.modules['__main__'].__file__)
     script_args = sys.argv[1:]
 
     venv = VirtualEnvironment(os.path.dirname(script_path))
-    venv.ensure_in_venv(script_path, script_args)
+    venv.run_as_virtual(script_path, script_args)
 
 def main():
     parser = argparse.ArgumentParser('ezvirtualenv')
@@ -34,7 +34,7 @@ class VirtualEnvironment(object):
         self._venv_pip = os.path.join(self._venv_dir, 'Scripts', 'pip')
         self._in_virtual_env = os.path.normcase(self._venv_python) == os.path.normcase(sys.executable)
 
-    def ensure_in_venv(self, script_path, script_args):
+    def run_as_virtual(self, script_path, script_args):
         # Resolve the script path.
         if not os.path.isdir(self._venv_dir):
             sys.stderr.write('You must create a virtual environment by running:\n' + \
@@ -71,7 +71,7 @@ class VirtualEnvironment(object):
 
     def install_requirements(self):
         # Relaunch into the virtual environment to install requirements.
-        self.ensure_in_venv(os.path.abspath(__file__), [self._project_dir])
+        self.run_as_virtual(os.path.abspath(__file__), [self._project_dir])
 
         print 'Checking requirements...'
         subprocess.check_call([self._venv_pip, 'install', '-r', self._requirements_path])
@@ -79,3 +79,4 @@ class VirtualEnvironment(object):
 
 if __name__ == '__main__':
     main()
+

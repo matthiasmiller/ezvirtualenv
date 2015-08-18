@@ -20,6 +20,6 @@ Creating a virtual environment for your project is simple.
 
         import ezvirtualenv
         if __name__ == '__main__':
-            ezvirtualenv.ensure_in_venv()
+            ezvirtualenv.run_as_virtual()
 
 That's it! Whenever you run your main Python script, it will automatically run in your virtual environment.
