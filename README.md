@@ -1,5 +1,5 @@
 # ezvirtualenv
-This is easy tool to run Python applications in virtual environments.
+This is an easy tool to run Python applications in virtual environments.
 
 ## Installation
 Installation is as easy as:
