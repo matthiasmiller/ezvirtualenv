@@ -1,27 +1,25 @@
 #!/usr/bin/env python
 # vim: sw=4 ts=4 et
-import argparse
 import os.path
 import subprocess
 import sys
+
+MODULE_NAME = 'ezvirtualenv'
 
 def run_as_virtual():
     script_path = os.path.abspath(sys.modules['__main__'].__file__)
     script_args = sys.argv[1:]
 
-    venv = VirtualEnvironment(os.path.dirname(script_path))
-    venv.run_as_virtual(script_path, script_args)
+    venv = _VirtualEnvironment(os.path.dirname(script_path))
+    if not venv.in_virtual_env:
+        venv.auto_create()
+        venv.run_script(script_path, script_args)
 
-def main():
-    parser = argparse.ArgumentParser('ezvirtualenv')
-    parser.add_argument('project_dir', nargs='?', default='.', help='root project directory')
-    args = parser.parse_args()
 
-    venv = VirtualEnvironment(os.path.abspath(args.project_dir))
-    venv.create_if_missing()
-    venv.install_requirements()
-
-class VirtualEnvironment(object):
+class _VirtualEnvironment(object):
+    """ This class is intentionally private.
+        Breaking changes may appear in the future.
+    """
 
     _check_environ_name = '__EXPECT_VIRTUAL_ENV'
 
@@ -30,53 +28,69 @@ class VirtualEnvironment(object):
         self._requirements_path = os.path.join(self._project_dir, 'requirements.txt')
 
         self._venv_dir = os.path.join(self._project_dir, '.venv')
+        self._venv_cache_path = os.path.join(self._venv_dir, '%s-cache.json' % MODULE_NAME)
         self._venv_python = os.path.join(self._venv_dir, 'Scripts', os.path.basename(sys.executable))
         self._venv_pip = os.path.join(self._venv_dir, 'Scripts', 'pip')
         self._in_virtual_env = os.path.normcase(self._venv_python) == os.path.normcase(sys.executable)
 
-    def run_as_virtual(self, script_path, script_args):
-        # Resolve the script path.
-        if not os.path.isdir(self._venv_dir):
-            sys.stderr.write('You must create a virtual environment by running:\n' + \
-                             '$ python -m ezvirtualenv\n')
-            sys.exit(1)
+    @property
+    def in_virtual_env(self):
+        return self._in_virtual_env
 
-        if not self._in_virtual_env:
-            print 'Relaunching in virtual environment...'
+    def run_script(self, script_path, script_args):
+        assert not self._in_virtual_env
 
-            # Sanity-check to protect against infinite loops.
-            env = os.environ.copy()
-            assert not env.get(self._check_environ_name), 'Error detecting virtual environment!'
-            env[self._check_environ_name] = 'yes'
+        print 'Relaunching in virtual environment...'
 
-            # Relaunch main script with same arguments.
-            proc = subprocess.Popen([self._venv_python, script_path] + script_args, env=env)
-            sys.exit(proc.wait())
+        # Sanity-check to protect against infinite loops.
+        env = os.environ.copy()
+        assert not env.get(self._check_environ_name), 'Error detecting virtual environment!'
+        env[self._check_environ_name] = 'yes'
 
-    def create_if_missing(self):
-        if not os.path.isfile(self._requirements_path):
-            sys.stderr.write('The requirements.txt file must exist.')
-            sys.exit(1)
+        # Relaunch main script with same arguments.
+        proc = subprocess.Popen([self._venv_python, script_path] + script_args, env=env)
+        sys.exit(proc.wait())
+
+    def auto_create(self):
+        assert not self._in_virtual_env
+
+        # Only import outside of the actual virtual environment.
+        import virtualenv
 
         if not os.path.isdir(self._venv_dir):
             print 'Creating virtual environment...'
-
-            # Only import outside of the actual virtual environment.
-            import virtualenv
             virtualenv.create_environment(self._venv_dir)
 
-            home_dir, lib_dir, inc_dir, bin_dir = virtualenv.path_locations(self._venv_dir)
-            virtualenv.copyfile(os.path.abspath(__file__),
-                                os.path.join(lib_dir, 'site-packages', os.path.basename(__file__)))
+        # Generate a key for requirements and virtualenv file.
+        cache_key = ''
+        for path in (self._requirements_path, os.path.abspath(__file__)):
+            cache_key += ','
+            if os.path.isfile(path):
+                si = os.stat(path)
+                cache_key += '%s-%s' % (si.st_mtime, si.st_size)
 
-    def install_requirements(self):
-        # Relaunch into the virtual environment to install requirements.
-        self.run_as_virtual(os.path.abspath(__file__), [self._project_dir])
+        # Skip if the files are unchanged.
+        if os.path.isfile(self._venv_cache_path):
+            with open(self._venv_cache_path) as f:
+                if cache_key == f.read().strip():
+                    return
 
-        print 'Checking requirements...'
-        subprocess.check_call([self._venv_pip, 'install', '-r', self._requirements_path])
+        self._refresh_requirements()
+        self._copy_ezvirtualenv()
 
+        # Update the cache
+        with open(self._venv_cache_path, 'w') as f:
+            f.write(cache_key)
+            
+    def _refresh_requirements(self):
+        if os.path.isfile(self._requirements_path):
+            # Note that we use the pip executable instead of the module to correctly detect dependencies.
+            print 'Checking requirements...'
+            subprocess.check_call([self._venv_pip, 'install', '-r', self._requirements_path])
 
-if __name__ == '__main__':
-    main()
-
+    def _copy_ezvirtualenv(self):
+        print 'Updating %s in virtual environment...' % MODULE_NAME
+        import virtualenv
+        home_dir, lib_dir, inc_dir, bin_dir = virtualenv.path_locations(self._venv_dir)
+        target_path = os.path.join(lib_dir, 'site-packages', os.path.basename(__file__))
+        virtualenv.copyfile(os.path.abspath(__file__), target_path)

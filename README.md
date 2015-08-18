@@ -8,18 +8,21 @@ Installation is as easy as:
 
 ## Usage
 
-Creating a virtual environment for your project is simple.
+To create a virtual environment for your project, simply modify your main
+Python script to automatically launch the virtual environment:
 
-* Create a file called `requirements.txt` in your project root using the [pip requirement specifiers](https://pip.pypa.io/en/latest/reference/pip_install.html#requirement-specifiers).
+    import ezvirtualenv
+    if __name__ == '__main__':
+        ezvirtualenv.run_as_virtual()
 
-* Run the following command from your project root to create your virtual environment:
+That's it! Whenever you run your main Python script, it will automatically
+run in your virtual environment. If your virtual environment is missing
+or out of date, it will automatically create and update it for you.
 
-        python -m ezvirtualenv
+## Custom Requirements
 
-* Modify your main Python script to automatically launch the virtual environment:
+ezvirtualenv will automatically install packages that are defined in
+a file called `requirements.txt` in your project root.
 
-        import ezvirtualenv
-        if __name__ == '__main__':
-            ezvirtualenv.run_as_virtual()
-
-That's it! Whenever you run your main Python script, it will automatically run in your virtual environment.
+See the [pip requirement specifiers](https://pip.pypa.io/en/latest/reference/pip_install.html#requirement-specifiers)
+for more details.
