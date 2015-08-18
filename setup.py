@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-setup(name='zzvirtualenv',
+setup(name='ezvirtualenv',
       version='0.1.0',
       description='Easy Virtual Environment',
       author='Matthias Miller',
