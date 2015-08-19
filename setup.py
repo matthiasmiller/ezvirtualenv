@@ -9,6 +9,7 @@ setup(
     version=ezvirtualenv.__version__,
     description='Easy Virtual Environment',
     author='Matthias Miller',
+    author_email='matthiasmiller@users.sf.net',
     url='https://github.com/matthiasmiller/ezvirtualenv',
     py_modules=['ezvirtualenv'],
     install_requires=[
