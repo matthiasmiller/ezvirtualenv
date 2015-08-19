@@ -100,7 +100,4 @@ class _VirtualEnvironment(object):
 
     def _copy_ezvirtualenv(self):
         print 'Updating %s in virtual environment...' % MODULE_NAME
-        import virtualenv
-        home_dir, lib_dir, inc_dir, bin_dir = virtualenv.path_locations(self._venv_dir)
-        target_path = os.path.join(lib_dir, 'site-packages', os.path.basename(__file__))
-        virtualenv.copyfile(os.path.abspath(__file__), target_path)
+        subprocess.check_call([self._venv_pip, 'install', '%s==%s' % (MODULE_NAME, __version__)])
