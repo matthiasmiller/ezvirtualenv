@@ -7,7 +7,7 @@ This is an easy tool to run Python applications in virtual environments.
 
 Installation is as easy as:
 
-    pip install git+https://github.com/matthiasmiller/ezvirtualenv.git
+    pip install ezvirtualenv
 
 
 ## Usage
