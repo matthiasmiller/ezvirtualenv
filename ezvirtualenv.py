@@ -4,6 +4,8 @@ import os.path
 import subprocess
 import sys
 
+__version__ = '0.1.1'
+
 MODULE_NAME = 'ezvirtualenv'
 
 def virtualize():

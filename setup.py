@@ -2,8 +2,10 @@
 # vim: sw=4 ts=4 et
 from setuptools import setup
 
+import ezvirtualenv
+
 setup(name='ezvirtualenv',
-      version='0.1.1',
+      version=ezvirtualenv.__version__,
       description='Easy Virtual Environment',
       author='Matthias Miller',
       url='https://github.com/matthiasmiller/ezvirtualenv',
