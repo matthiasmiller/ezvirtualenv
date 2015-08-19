@@ -13,7 +13,7 @@ Python script to automatically launch the virtual environment:
 
     import ezvirtualenv
     if __name__ == '__main__':
-        ezvirtualenv.run_as_virtual()
+        ezvirtualenv.virtualize()
 
 That's it! Whenever you run your main Python script, it will automatically
 run in your virtual environment. If your virtual environment is missing

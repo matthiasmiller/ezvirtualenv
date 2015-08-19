@@ -6,7 +6,7 @@ import sys
 
 MODULE_NAME = 'ezvirtualenv'
 
-def run_as_virtual():
+def virtualize():
     script_path = os.path.abspath(sys.modules['__main__'].__file__)
     script_args = sys.argv[1:]
 
