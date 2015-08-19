@@ -11,7 +11,6 @@ setup(
     author='Matthias Miller',
     author_email='matthiasmiller@users.sf.net',
     url='https://github.com/matthiasmiller/ezvirtualenv',
-    py_modules=['ezvirtualenv'],
     install_requires=[
         'virtualenv>=13.0.03',
     ],
