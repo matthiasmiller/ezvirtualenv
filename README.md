@@ -1,10 +1,14 @@
 # ezvirtualenv
+
 This is an easy tool to run Python applications in virtual environments.
 
+
 ## Installation
+
 Installation is as easy as:
 
     pip install git+https://github.com/matthiasmiller/ezvirtualenv.git
+
 
 ## Usage
 
@@ -18,6 +22,7 @@ Python script to automatically launch the virtual environment:
 That's it! Whenever you run your main Python script, it will automatically
 run in your virtual environment. If your virtual environment is missing
 or out of date, it will automatically create and update it for you.
+
 
 ## Custom Requirements
 
