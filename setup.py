@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='ezvirtualenv',
-      version='0.1.0',
+      version='0.1.1',
       description='Easy Virtual Environment',
       author='Matthias Miller',
       url='https://github.com/matthiasmiller/ezvirtualenv',
