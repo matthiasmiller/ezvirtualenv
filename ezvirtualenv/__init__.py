@@ -49,7 +49,7 @@ class _VirtualEnvironment(object):
     def run_script(self):
         assert not self._in_virtual_env
 
-        print 'Relaunching in virtual environment...'
+        sys.stdout.write('Relaunching in virtual environment...\n')
 
         env = os.environ.copy()
         env[self._check_environ_name] = 'yes'
@@ -65,7 +65,7 @@ class _VirtualEnvironment(object):
         import virtualenv
 
         if not os.path.isdir(self._venv_dir):
-            print 'Creating virtual environment...'
+            sys.stdout.write('Creating virtual environment...\n')
             virtualenv.create_environment(self._venv_dir)
 
         # Skip if the requirements and ezvirtualenv files are unchanged.
@@ -95,9 +95,9 @@ class _VirtualEnvironment(object):
     def _refresh_requirements(self):
         if os.path.isfile(self._requirements_path):
             # Note that we use the pip executable instead of the module to correctly detect dependencies.
-            print 'Checking requirements...'
+            sys.stdout.write('Checking requirements...\n')
             subprocess.check_call([self._venv_pip, 'install', '-r', self._requirements_path])
 
     def _copy_ezvirtualenv(self):
-        print 'Updating %s in virtual environment...' % MODULE_NAME
+        sys.stdout.write('Updating %s in virtual environment...\n' % MODULE_NAME)
         subprocess.check_call([self._venv_pip, 'install', '%s==%s' % (MODULE_NAME, __version__)])
