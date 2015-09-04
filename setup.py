@@ -1,12 +1,19 @@
 #!/usr/bin/env python
 # vim: sw=4 ts=4 et
+import os.path
+import re
 from setuptools import setup
 
-import ezvirtualenv
+def getversion():
+    dir_ = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(dir_, 'ezvirtualenv', '__init__.py')) as f:
+        match = re.search(r"__version__ = '([\d\.]+)'", f.read())
+        assert match, 'Could not locate version!'
+        return match.group(1)
 
 setup(
     name='ezvirtualenv',
-    version=ezvirtualenv.__version__,
+    version=getversion(),
     description='Easy Virtual Environment',
     author='Matthias Miller',
     author_email='matthiasmiller@users.sf.net',
