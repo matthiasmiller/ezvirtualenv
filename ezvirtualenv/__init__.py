@@ -4,6 +4,8 @@ import os.path
 import subprocess
 import sys
 
+import virtualenv
+
 __version__ = '0.1.3'
 
 MODULE_NAME = 'ezvirtualenv'
@@ -34,8 +36,11 @@ class _VirtualEnvironment(object):
 
         self._venv_dir = os.path.join(self._script_dir, '.venv')
         self._venv_cache_path = os.path.join(self._venv_dir, '%s.cache' % MODULE_NAME)
-        self._venv_python = os.path.join(self._venv_dir, 'Scripts', os.path.basename(sys.executable))
-        self._venv_pip = os.path.join(self._venv_dir, 'Scripts', 'pip')
+
+        # Load the paths using virtualenv's logic.
+        home_dir, lib_dir, inc_dir, bin_dir = virtualenv.path_locations(self._venv_dir)
+        self._venv_python = os.path.join(bin_dir, os.path.basename(sys.executable))
+        self._venv_pip = os.path.join(bin_dir, 'pip')
         self._in_virtual_env = os.path.normcase(self._venv_python) == os.path.normcase(sys.executable)
 
         # Make sure this is the *right* virtual environment!
@@ -60,9 +65,6 @@ class _VirtualEnvironment(object):
 
     def auto_create(self):
         assert not self._in_virtual_env
-
-        # Only import outside of the virtual environment.
-        import virtualenv
 
         if not os.path.isdir(self._venv_dir):
             sys.stdout.write('Creating virtual environment...\n')
@@ -99,5 +101,8 @@ class _VirtualEnvironment(object):
             subprocess.check_call([self._venv_pip, 'install', '-r', self._requirements_path])
 
     def _copy_ezvirtualenv(self):
+        # Install the same version of virtualenv in the virtual environment.
         sys.stdout.write('Updating %s in virtual environment...\n' % MODULE_NAME)
-        subprocess.check_call([self._venv_pip, 'install', '%s==%s' % (MODULE_NAME, __version__)])
+        subprocess.check_call([self._venv_pip, 'install',
+                               'virtualenv==%s' % virtualenv.__version__,
+                               '%s==%s' % (MODULE_NAME, __version__)])
