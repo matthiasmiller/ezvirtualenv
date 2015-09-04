@@ -102,7 +102,10 @@ class _VirtualEnvironment(object):
 
     def _copy_ezvirtualenv(self):
         # Install the same version of virtualenv in the virtual environment.
-        sys.stdout.write('Updating %s in virtual environment...\n' % MODULE_NAME)
-        subprocess.check_call([self._venv_pip, 'install',
-                               'virtualenv==%s' % virtualenv.__version__,
-                               '%s==%s' % (MODULE_NAME, __version__)])
+        packages = [
+            ('virtualenv', virtualenv.__version__),
+            (MODULE_NAME, __version__),
+        ]
+        for package, version in packages:
+            sys.stdout.write('Updating %s in virtual environment...\n' % package)
+        subprocess.check_call([self._venv_pip, 'install', '%s==%s' % (package, version)])
