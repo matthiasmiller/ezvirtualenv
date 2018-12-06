@@ -66,7 +66,8 @@ class _VirtualEnvironment(object):
     def auto_create(self):
         assert not self._in_virtual_env
 
-        if not os.path.isdir(self._venv_dir):
+        # Create the virtual environment if the folder is missing or empty
+        if not os.path.isdir(self._venv_dir) or not os.listdir(self._venv_dir):
             sys.stdout.write('Creating virtual environment...\n')
             virtualenv.create_environment(self._venv_dir)
 
