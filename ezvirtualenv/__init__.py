@@ -4,9 +4,14 @@ import os.path
 import subprocess
 import sys
 
-import virtualenv
+try:
+    import venv
+    virtualenv = None
+except ImportError:
+    import virtualenv
+    venv = None
 
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 
 MODULE_NAME = 'ezvirtualenv'
 
@@ -38,9 +43,15 @@ class _VirtualEnvironment(object):
         self._venv_cache_path = os.path.join(self._venv_dir, '%s.cache' % MODULE_NAME)
 
         # Load the paths using virtualenv's logic.
-        home_dir, lib_dir, inc_dir, bin_dir = virtualenv.path_locations(self._venv_dir)
-        self._venv_python = os.path.join(bin_dir, os.path.basename(sys.executable))
-        self._venv_pip = os.path.join(bin_dir, 'pip')
+        if venv:
+            builder = venv.EnvBuilder(with_pip=True)
+            ctx = builder.ensure_directories(self._venv_dir)
+            self._venv_python = os.path.join(ctx.bin_path, ctx.python_exe)
+            self._venv_pip = os.path.join(ctx.bin_path, 'pip')
+        else:
+            home_dir, lib_dir, inc_dir, bin_dir = virtualenv.path_locations(self._venv_dir)
+            self._venv_python = os.path.join(bin_dir, os.path.basename(sys.executable))
+            self._venv_pip = os.path.join(bin_dir, 'pip')
         self._in_virtual_env = os.path.normcase(self._venv_python) == os.path.normcase(sys.executable)
 
         # Make sure this is the *right* virtual environment!
@@ -67,9 +78,13 @@ class _VirtualEnvironment(object):
         assert not self._in_virtual_env
 
         # Create the virtual environment if the folder is missing or empty
-        if not os.path.isdir(self._venv_dir) or not os.listdir(self._venv_dir):
+        if not os.path.isfile(self._venv_python):
             sys.stdout.write('Creating virtual environment...\n')
-            virtualenv.create_environment(self._venv_dir)
+            if venv:
+                ctx = venv.EnvBuilder(with_pip=True)
+                ctx.create(self._venv_dir)
+            else:
+                virtualenv.create_environment(self._venv_dir)
 
         # Skip if the requirements and ezvirtualenv files are unchanged.
         cache_key = self._get_cache_key()
@@ -103,10 +118,11 @@ class _VirtualEnvironment(object):
 
     def _copy_ezvirtualenv(self):
         # Install the same version of virtualenv in the virtual environment.
-        packages = [
-            ('virtualenv', virtualenv.__version__),
-            (MODULE_NAME, __version__),
-        ]
+        packages = []
+        if virtualenv:
+            packages.append(('virtualenv', virtualenv.__version__))
+        packages.append((MODULE_NAME, __version__))
+
         for package, version in packages:
             sys.stdout.write('Updating %s in virtual environment...\n' % package)
         subprocess.check_call([self._venv_pip, 'install', '%s==%s' % (package, version)])
